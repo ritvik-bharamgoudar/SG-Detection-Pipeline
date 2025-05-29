@@ -14,6 +14,4 @@ See `main_pipeline.py` and `sample_data/` for a working example.
 ## Requirements
 Install Python packages listed in `requirements.txt`.
 
-## Credits
-Code and methods developed as part of the EN3100 dissertation project by Ritvik Bharamgoudar.
 
