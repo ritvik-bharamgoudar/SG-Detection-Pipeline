@@ -1,0 +1,8 @@
+numpy
+matplotlib
+pandas
+nibabel
+scikit-learn
+xgboost
+ipywidgets
+

@@ -1,0 +1,13 @@
+# Ignore temporary, system, and backup files
+*.DS_Store
+*.swp
+__pycache__/
+.ipynb_checkpoints/
+
+# Ignore large nifti files
+*.nii
+*.nii.gz
+
+# allow specific sample_data files
+!sample_data/*.nii.gz
+
