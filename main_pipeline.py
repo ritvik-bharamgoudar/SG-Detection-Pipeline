@@ -1,8 +1,8 @@
 import os
 import numpy as np
 import pandas as pd
-from src.utils import load_all_data, get_column_ids, get_max_depth, load_manual_labels
-from src.extract_profiles import extract_median_profile
+from src.utils import load_all_data, load_manual_labels, load_nifti
+from src.extract_profiles import extract_median_profile, get_column_ids, get_max_depth
 from src.extract_feautres import compute_features
 from src.classifier_training import (
     prepare_training_data,
@@ -17,14 +17,14 @@ from sklearn.preprocessing import StandardScaler
 # Step 1: Define input file paths
 # Change these paths to your data locations
 # columns from LAYNII LN2_COLUMNS and layers from LAYNII LN2_LAYERS
-mri_path = "../200um_01/200um_scoop_V1_02.nii.gz"
-column_path = "../200um_01/Columns/20_05_columns300.nii"
-layer_path = "../200um_01/Layers/50_05_layers_equivol.nii"
-label_path = "manual_labels.csv"
+mri_path = "sample_data/Edlow_2019_200um_scoop_V1.nii.gz"
+column_path = "sample_data/scoop_V1_columns_300.nii.gz"
+layer_path = "sample_data/scoop_V1_layers_50_equivol.nii.gz"
+label_path = "sample_data/manual_labels.csv"
 
 # Step 2: Load data
 mri_data, column_data, cortical_depth = load_all_data(mri_path, column_path, layer_path)
-affine = load_all_data(column_path, return_affine=True)[1]  # Needed for saving
+_, affine = load_nifti(column_path, return_affine=True) # Needed for saving
 
 # Step 3: Extract intensity profiles and compute features
 col_IDs = get_column_ids(column_data)

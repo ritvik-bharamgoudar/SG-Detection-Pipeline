@@ -39,13 +39,21 @@ def load_all_data(mri_path, column_path, layer_path):
 
 def load_manual_labels(label_file):
     """
-    Load column labels from a CSV file. The file should contain 'col_id' and 'label' columns.
+    Load column labels and classification from a CSV file.
 
     Parameters:
-        label_file (str): Path to the label CSV.
+        label_file (str): Path to the label CSV. Should contain 'col_id' and 'label' columns.
 
     Returns:
         dict: {col_id: label}
+
+    Raises:
+        ValueError: If duplicate column IDs found.
     """
     df = pd.read_csv(label_file)
+
+    if df['col_id'].duplicated().any():
+        duplicates = df[df['col_id'].duplicated(keep=False)]
+        raise ValueError(f"Duplicate column IDs found in {label_file}:\n{duplicates}")
+
     return dict(zip(df['col_id'], df['label']))
