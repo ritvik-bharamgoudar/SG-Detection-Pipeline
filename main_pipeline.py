@@ -1,8 +1,6 @@
-import os
-import numpy as np
-import pandas as pd
+
 from src.utils import load_all_data, load_manual_labels, load_nifti
-from src.extract_profiles import extract_median_profile, get_column_ids, get_max_depth
+from src.extract_profiles import extract_median_profile, get_column_ids
 from src.extract_feautres import compute_features
 from src.classifier_training import (
     prepare_training_data,
@@ -11,8 +9,7 @@ from src.classifier_training import (
     predict_sg_probabilities,
 )
 from src.spatial_utils import get_column_adjacency, adjacency_to_dict, smooth_confidence_scores
-from src.outputs import save_probability_map_to_nifti
-from sklearn.preprocessing import StandardScaler
+from src.outputs import save_column_map_to_nifti
 
 # Step 1: Define input file paths
 # Change these paths to your data locations
@@ -35,7 +32,7 @@ profiles = {
 feature_df = compute_features(profiles)
 
 # Step 4: Load labelled data and prepare training data
-label_dict = load_manual_labels(label_path)
+label_dict = load_manual_labels(label_path, clean_duplicates=True, sort_by='col_id', save_cleaned=True)
 feature_columns = ['dip_width', 'dip_depth_diff', 'post_dip_ratio', 'second_derivative_max']
 X_train_scaled, X_test_scaled, y_train, y_test, scaler = prepare_training_data(
     feature_df, label_dict, features_to_use=feature_columns
@@ -51,12 +48,12 @@ feature_df = predict_sg_probabilities(
 )
 
 # Step 7: Save raw RF (or XGB if specified) probability map
-save_probability_map_to_nifti(
+save_column_map_to_nifti(
     feature_df=feature_df,
     column_data=column_data,
-    prob_col="rf_sg_probability",
+    value_col="rf_sg_probability",
     affine=affine,
-    output_path="SG_RF_probability_map_raw.nii"
+    output_path="SG_RF_probability_map_raw_100.nii"
 )
 
 # Step 8: Apply smoothing using 3D column adjacency
@@ -67,12 +64,18 @@ feature_df["rf_sg_probability_smoothed"] = smooth_confidence_scores(
 )
 
 # Step 9: Save smoothed RF probability map
-save_probability_map_to_nifti(
+save_column_map_to_nifti(
     feature_df=feature_df,
     column_data=column_data,
-    prob_col="rf_sg_probability_smoothed",
+    value_col="rf_sg_probability_smoothed",
     affine=affine,
-    output_path="SG_RF_smoothed_probability_map.nii"
+    output_path="SG_RF_smoothed_probability_map_100.nii"
 )
+
+# Save final feature_df after all processing steps
+output_csv_path = "outputs/morelab_feature_df_full.csv"
+feature_df.to_csv(output_csv_path, index=False)
+print(f"Saved final feature_df to {output_csv_path}")
+
 
 print("Pipeline complete.")

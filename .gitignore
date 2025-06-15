@@ -12,3 +12,5 @@ __pycache__/
 # allow specific sample_data files
 !sample_data/*.nii.gz
 
+analysis/
+outputs/
