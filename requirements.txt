@@ -5,4 +5,6 @@ nibabel
 scikit-learn
 xgboost
 ipywidgets
+joblib
+
 

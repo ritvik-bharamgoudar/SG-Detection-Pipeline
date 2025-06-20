@@ -8,6 +8,7 @@ __pycache__/
 # Ignore large nifti files
 *.nii
 *.nii.gz
+*.joblib
 
 # allow specific sample_data files
 !sample_data/*.nii.gz
