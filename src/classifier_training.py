@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import joblib
+from pathlib import Path
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
@@ -43,11 +45,12 @@ def prepare_training_data(feature_df, label_dict, features_to_use=None, test_siz
     return X_train_scaled, X_test_scaled, y_train, y_test, scaler
 
 
-def train_rf_model(X_train, y_train, n_estimators=500, max_depth=3, min_samples_split=3, class_weight="balanced", random_state=42):
+def train_rf_model(X_train, y_train, n_estimators=500, max_depth=3, min_samples_split=3, class_weight="balanced", 
+                   random_state=42, save_model=False, model_path=None, feature_names=None, scaler=None):
     """
     Train a Random Forest classifier with specified hyperparameters.
 
-    Hyperparameters:
+    Parameters:
         X_train (np.ndarray): Scaled feature matrix for training
         y_train (array-like): Binary labels for training
         n_estimators (int, optional): Number of trees in the forest (default: 500)
@@ -55,6 +58,10 @@ def train_rf_model(X_train, y_train, n_estimators=500, max_depth=3, min_samples_
         min_samples_split (int, optional): Minimum samples to split a node (default: 3)
         class_weight (str or dict, optional): Class balancing method (default: 'balanced')
         random_state (int, optional): Random seed for reproducibility (default: 42)
+        save_model (bool, optional): Whether to save the trained model (default: False)
+        model_path (str, optional): Path to save the model if save_model is True
+        feature_names (list, optional): Names of the features used for training
+        scaler (StandardScaler, optional): Fitted scaler used to scale features
 
     Returns:
         rf_model: Trained model
@@ -67,13 +74,25 @@ def train_rf_model(X_train, y_train, n_estimators=500, max_depth=3, min_samples_
         random_state=random_state
     )
     rf_model.fit(X_train, y_train)
+
+    if save_model:
+        # save model and scaler
+        model_package = {
+            'model': rf_model,
+            'scaler': scaler,
+            'feature_names': feature_names
+        }
+        joblib.dump(model_package, model_path)
+        print(f"RF model saved to {model_path}")
+
     return rf_model
 
-def train_xgb_model(X_train, y_train, n_estimators=200, learning_rate=0.1, max_depth=3, subsample=0.8, colsample_bytree=0.8, scale_pos_weight=1.5, eval_metric="logloss", random_state=42):
+def train_xgb_model(X_train, y_train, n_estimators=200, learning_rate=0.1, max_depth=3, subsample=0.8, colsample_bytree=0.8, 
+                    scale_pos_weight=1.5, eval_metric="logloss", random_state=42, save_model=False, model_path=None, feature_names=None, scaler=None):
     """
     Train a XGBoost classifier with specified hyperparameters.
 
-    Hyperparameters:
+    Parameters:
         X_train (np.ndarray): Scaled feature matrix for training
         y_train (array-like): Binary labels for training
         n_estimators (int, optional): Number of boosting rounds/trees (default: 200)
@@ -84,6 +103,10 @@ def train_xgb_model(X_train, y_train, n_estimators=200, learning_rate=0.1, max_d
         scale_pos_weight (float, optional): Weighting factor to balance positive/negative classes (default: 1.5)
         eval_metric (str, optional): Evaluation metric used during training (default: 'logloss')
         random_state (int, optional): Random seed for reproducibility (default: 42)
+        save_model (bool, optional): Whether to save the trained model (default: False)
+        model_path (str, optional): Path to save the model if save_model is True
+        feature_names (list, optional): Names of the features used for training
+        scaler (StandardScaler, optional): Fitted scaler used to scale features
 
     Returns:
         xgb_model: Trained model
@@ -99,6 +122,18 @@ def train_xgb_model(X_train, y_train, n_estimators=200, learning_rate=0.1, max_d
         random_state=random_state
     )
     xgb_model.fit(X_train, y_train)
+
+
+    if save_model:
+        # save model and scaler
+        model_package = {
+            'model': xgb_model,
+            'scaler': scaler,
+            'feature_names': feature_names
+        }
+        joblib.dump(model_package, model_path)
+        print(f"XGB model saved to {model_path}")
+
     return xgb_model
 
 def evaluate_model(model, X_test, y_test, col_ids=None, model_name="Model"):
@@ -208,4 +243,45 @@ def predict_sg_probabilities(feature_df, model, scaler, model_name="model"):
     # Store in new column
     feature_df[f"{model_name}_sg_probability"] = probs
 
+    return feature_df
+
+
+def predict_sg_probabilities_from_saved_model(feature_df, model_path, model_name="model"):
+    """
+    Predict SG probabilities using a saved model package.
+    
+    Parameters:
+        feature_df: DataFrame with features and 'col_id'
+        model_path: Path to saved .joblib model
+        model_name: used for naming the output column
+        
+    Returns:
+        feature_df with a new column: '{model_name}_sg_probability'
+    """
+    # Load model package
+    model_package = joblib.load(model_path)
+    model = model_package['model']
+    scaler = model_package['scaler']
+    expected_features = model_package['feature_names']
+    
+    feature_df = feature_df.copy()
+    
+    # Ensure feature consistency
+    available_features = [col for col in feature_df.columns if col in expected_features]
+    if len(available_features) != len(expected_features):
+        missing = set(expected_features) - set(available_features)
+        raise ValueError(f"Missing required features: {missing}")
+    
+    # Extract and order features correctly (important!)
+    features = feature_df[expected_features]
+    
+    # Apply scaling
+    features_scaled = scaler.transform(features)
+    
+    # Predict SG probability
+    probs = model.predict_proba(features_scaled)[:, 1]
+    
+    # Store in new column
+    feature_df[f"{model_name}_sg_probability"] = probs
+    
     return feature_df
