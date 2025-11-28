@@ -12,7 +12,7 @@ from src.spatial_utils import get_column_adjacency, adjacency_to_dict, smooth_co
 from src.outputs import save_column_map_to_nifti
 
 # Step 1: Define input file paths
-# Change these paths to your data locations
+# Change paths to data locations
 # columns from LAYNII LN2_COLUMNS and layers from LAYNII LN2_LAYERS
 mri_path = "sample_data/Edlow_2019_200um_scoop_V1.nii.gz"
 column_path = "sample_data/scoop_V1_columns_300.nii.gz"
@@ -21,7 +21,7 @@ label_path = "sample_data/manual_labels.csv"
 
 # Step 2: Load data
 mri_data, column_data, cortical_depth = load_all_data(mri_path, column_path, layer_path)
-_, affine = load_nifti(column_path, return_affine=True) # Needed for saving
+_, affine = load_nifti(column_path, return_affine=True) # match input output affine
 
 # Step 3: Extract intensity profiles and compute features
 col_IDs = get_column_ids(column_data)

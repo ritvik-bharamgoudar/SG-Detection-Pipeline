@@ -9,9 +9,19 @@ __pycache__/
 *.nii
 *.nii.gz
 *.joblib
+*.md
+*.pial
+*.white
+*.vtk
+raw_data/
+surface_tools
+Further_work/
+work_in_progress/
+
 
 # allow specific sample_data files
 !sample_data/*.nii.gz
+!README.md
 
 analysis/
 outputs/

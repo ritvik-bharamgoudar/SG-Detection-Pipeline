@@ -1,0 +1,10 @@
+40 surfaces created between pial (depth = 0) and white (depth = 1)
+
+python3 -m surface_tools.equivolumetric_surfaces.generate_equivolumetric_surfaces \
+    --smoothing 0 \
+    edlow2019_oula/surf/rh.pial \
+    edlow2019_oula/surf/rh.white \
+    41 \
+    rh.equi40 \
+    --software freesurfer \
+    --subject_id edlow2019_oula
