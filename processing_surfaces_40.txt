@@ -8,3 +8,8 @@ python3 -m surface_tools.equivolumetric_surfaces.generate_equivolumetric_surface
     rh.equi40 \
     --software freesurfer \
     --subject_id edlow2019_oula
+
+
+
+
+
