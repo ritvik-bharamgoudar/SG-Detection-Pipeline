@@ -1,7 +1,7 @@
 import joblib
 from src.utils import load_all_data, load_manual_labels, load_nifti
 from src.extract_profiles import extract_median_profile, get_column_ids
-from src.extract_feautres import compute_features
+from src.extract_features import compute_features
 from src.classifier_training import (
     predict_sg_probabilities_from_saved_model
 )

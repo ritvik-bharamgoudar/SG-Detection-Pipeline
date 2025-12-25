@@ -9,7 +9,7 @@ from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import cross_val_score
 
-def prepare_training_data(feature_df, label_dict, features_to_use=None, test_size=0.4, random_state=42):
+def prepare_training_data(feature_df, label_dict, features_to_use=None, test_size=0.4, random_state=42, scale=True):
     """
     Prepare training and test data with standard scaling.
 
@@ -37,10 +37,15 @@ def prepare_training_data(feature_df, label_dict, features_to_use=None, test_siz
     # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
 
-    # Scale features
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+    if scale:
+        # Scale features
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+    else:
+        scaler = []
+        X_train_scaled = X_train
+        X_test_scaled = X_test
 
     return X_train_scaled, X_test_scaled, y_train, y_test, scaler
 
