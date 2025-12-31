@@ -221,7 +221,7 @@ def compute_second_derivative(depths, intensities, dip_width, dip_depths, smooth
 
     return max_curvature, second_derivative
 
-def compute_features(profiles, threshold_factor=0.02):
+def compute_features_old(profiles, threshold_factor=0.02):
     """
     Compute features for each column based on its intensity profile.
 
@@ -260,6 +260,57 @@ def compute_features(profiles, threshold_factor=0.02):
         max_second_derivative, _ = compute_second_derivative(d_filt, i_filt, dip_width, dip_depths)
 
         # Store features
+        feature_list.append({
+            "col_id": col_id,
+            "dip_width": dip_width,
+            "dip_depth_diff": dip_depth_diff,
+            "post_dip_ratio": post_dip_ratio,
+            "second_derivative_max": max_second_derivative
+        })
+
+    return pd.DataFrame(feature_list)
+
+def compute_features(profiles, threshold_factor=0.02):
+    """
+    Compute features for each column based on its intensity profile.
+    Handles profiles with no detectable dip by setting features to 0.
+    """
+    feature_list = []
+
+    for col_id, (depths, intensities) in profiles.items():
+        if len(depths) == 0 or len(intensities) == 0:
+            continue
+
+        # Trendline (always computable)
+        try:
+            d_filt, i_filt, _, _, trendline, profile_slope = extract_regression_points(depths, intensities)
+        except Exception as e:
+            print(f"Skipping column {col_id} due to regression error:", e)
+            continue
+
+        # Dip detection
+        dip_width, dip_depths, _ = compute_dip_width(d_filt, i_filt, trendline, threshold_factor)
+        dip_depth, dip_depth_diff = compute_dip_depth(d_filt, i_filt, trendline, threshold_factor)
+
+        # Handle no-dip case: set dependent features to 0
+        if dip_depth is None or dip_width < 2:
+            dip_depth_diff = 0
+            post_dip_ratio = 0
+            max_second_derivative = 0
+        else:
+            # Normal feature extraction when dip exists
+            post_dip_slope = compute_post_dip_regression_slope(d_filt, i_filt, dip_depth)
+            max_second_derivative, _ = compute_second_derivative(d_filt, i_filt, dip_width, dip_depths)
+            
+            # Handle edge cases even when dip exists
+            if post_dip_slope is None:
+                post_dip_ratio = 0
+            else:
+                post_dip_ratio = post_dip_slope / profile_slope if profile_slope != 0 else 0
+            
+            if max_second_derivative is None:
+                max_second_derivative = 0
+
         feature_list.append({
             "col_id": col_id,
             "dip_width": dip_width,
