@@ -1,5 +1,6 @@
 import nibabel as nib
 import pandas as pd
+import numpy as np
 
 def load_nifti(file_path, return_affine=False):
     """
@@ -118,3 +119,24 @@ def load_manual_labels(label_file, clean_duplicates=False, sort_by=None, save_cl
         print(f"Final dataset: {len(df)} entries")
     
     return dict(zip(df['col_id'], df['label']))
+
+
+def dataframe_to_profile_dict(df, depth_columns):
+    '''
+    Helper function to convert dataframe with col_id into dict for profiles. 
+
+    Parameters:
+        df (df): dataframe with rows, columns as profiles, depths. Each element is intensity at that location
+        depth_columns (int) : number of depths to extract
+
+    Returns:
+        profiles_dict (dict): key, value is profile_id, (depth, intensity)
+
+    '''
+    profiles_dict = {}
+    for idx, row in df.iterrows():
+        vertex_id = row['col_id']
+        depths = np.array(depth_columns)
+        intensities = row[depth_columns].values
+        profiles_dict[vertex_id] = (depths, intensities)
+    return profiles_dict
